@@ -34,6 +34,7 @@ services:
       - "8000:8000"
     volumes:
       - ./back-end-PHP-Laravel:/var/www/html
+      - /var/www/html/vendor
     depends_on:
       - mysql
     environment:
