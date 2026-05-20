@@ -1,0 +1,99 @@
+version: '3.9'
+
+services:
+
+  # =========================
+  # Frontend React + TypeScript
+  # =========================
+  frontend:
+    container_name: react-ts-app
+    build:
+      context: ./front-end-REACT-TS
+      dockerfile: Dockerfile
+    ports:
+      - "5180:5173"
+    volumes:
+      - ./front-end-REACT-TS:/var/www/app
+      - /var/www/app/node_modules
+    stdin_open: true
+    tty: true
+    depends_on:
+      - backend
+    networks:
+      - app-network
+
+  # =========================
+  # Backend Laravel + PHP
+  # =========================
+  backend:
+    container_name: laravel-api
+    build:
+      context: ./back-end-PHP-Laravel
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./back-end-PHP-Laravel:/var/www/html
+    depends_on:
+      - mysql
+    environment:
+      DB_CONNECTION: mysql
+      DB_HOST: mysql-db
+      DB_PORT: 3306
+      DB_DATABASE: AppMensajes
+      DB_USERNAME: root
+      DB_PASSWORD: root123
+    working_dir: /var/www/html
+    command: php artisan serve --host=0.0.0.0 --port=8000
+    networks:
+      - app-network
+
+  # =========================
+  # MySQL Database
+  # =========================
+  mysql:
+    container_name: mysql-db
+    image: mysql:8.0
+    restart: always
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_DATABASE: app_db
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: secret123
+      MYSQL_ROOT_PASSWORD: root123
+    volumes:
+      - mysql_data-app-prueba0:/var/lib/mysql
+    networks:
+      - app-network
+
+  # =========================
+  # phpMyAdmin
+  # =========================
+  phpmyadmin:
+    container_name: phpmyadmin
+    image: phpmyadmin/phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    depends_on:
+      - mysql
+    environment:
+      PMA_HOST: mysql
+      PMA_PORT: 3306
+      MYSQL_ROOT_PASSWORD: root123
+    networks:
+      - app-network
+
+# =========================
+# Volumes
+# =========================
+volumes:
+  mysql_data-app-prueba0:
+
+# =========================
+# Networks
+# =========================
+networks:
+  app-network:
+    driver: bridge
